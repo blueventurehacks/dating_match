@@ -1,0 +1,27 @@
+[project]
+name = "dating-a2a"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "a2a-sdk>=0.3.6",
+    "typing-extensions>=4.15.0",
+    "uvicorn>=0.36.0",
+]
+
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = { include = ["server_a2a"] }
+
+[project.optional-dependencies]
+http-server = [
+    "a2a-sdk[http-server]>=0.3.6",
+    "starlette>=0.48.0",
+    "sse-starlette>=3.0.2",
+    "uvicorn>=0.36.0",
+]
