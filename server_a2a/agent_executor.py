@@ -2,30 +2,8 @@ from typing_extensions import override
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events import EventQueue
 from a2a.utils import new_agent_text_message
-
-
-class HelloWorldAgent:
-    """Hello World Agent."""
-
-    async def invoke(self, input_text: str | None = None) -> str:
-        """Return the provided input_text if present, otherwise a default."""
-        if input_text:
-            if ":" in input_text:
-                input_text = input_text.split(":", 1)[1].strip()
-            return "HelloWorld Agent: " + input_text
-        return "Hello World~"
-
-
-class HiThereAgent:
-    """Hi There Agent."""
-
-    async def invoke(self, input_text: str | None = None) -> str:
-        """Return the provided input_text if present, otherwise a default."""
-        if input_text:
-            if ":" in input_text:
-                input_text = input_text.split(":", 1)[1].strip()
-            return "HiThere Agent: " + input_text
-        return "Hi there!"
+from agents.agent_hello import HelloWorldAgent
+from agents.agent_hi import HiThereAgent
 
 
 class HelloWorldAgentExecutor(AgentExecutor):
