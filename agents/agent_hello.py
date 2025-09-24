@@ -1,4 +1,16 @@
-from a2a.types import AgentSkill, AgentCard, AgentCapabilities
+from typing import Union
+import uuid
+
+from a2a.types import (
+    AgentSkill,
+    AgentCard,
+    AgentCapabilities,
+    Message,
+    Role,
+    Part,
+    TextPart,
+)
+from .utils import extract_text
 
 
 hello_skill = AgentSkill(
@@ -23,12 +35,26 @@ hello_agent_card = AgentCard(
 
 
 class HelloWorldAgent:
-    """Hello World Agent."""
+    """Simple agent that accepts either a str or a Message-like object."""
 
-    async def invoke(self, input_text: str | None = None) -> str:
-        """Return the provided input_text if present, otherwise a default."""
-        if input_text:
-            if ":" in input_text:
-                input_text = input_text.split(":", 1)[1].strip()
-            return "HelloWorld Agent: " + input_text
-        return "Hello World~"
+    async def invoke(self, input_value: Union[str, Message, None] = None) -> Message:
+        """Return the provided input text or message payload with prefix, otherwise a default.
+
+        Args:
+            input_value: either a `str`, an `a2a.types.Message`, or `None`.
+        """
+        text = extract_text(input_value)
+        if text:
+            out_text = "HelloWorld Agent: " + text
+        else:
+            out_text = "Hello World~"
+
+        # Build two TextParts, one for human and one for agent
+        user_part = Part(root=TextPart(text=out_text, metadata={"receiver": "user"}))
+        agent_part = Part(root=TextPart(text=out_text, metadata={"receiver": "agent"}))
+        out_message = Message(
+            message_id=uuid.uuid4().hex,
+            parts=[user_part, agent_part],
+            role=Role.agent,
+        )
+        return out_message

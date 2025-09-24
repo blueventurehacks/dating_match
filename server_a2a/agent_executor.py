@@ -4,6 +4,7 @@ from a2a.server.events import EventQueue
 from a2a.utils import new_agent_text_message
 from agents.agent_hello import HelloWorldAgent
 from agents.agent_hi import HiThereAgent
+from .utils import get_input_value_from_context
 
 
 class HelloWorldAgentExecutor(AgentExecutor):
@@ -18,15 +19,14 @@ class HelloWorldAgentExecutor(AgentExecutor):
         context: RequestContext,
         event_queue: EventQueue,
     ) -> None:
-        # Extract incoming text from the request context (if any)
-        try:
-            user_text = context.get_user_input().strip()
-        except Exception:
-            user_text = ""
+        # Prefer passing the full Message object when available
+        # to allow the agent to inspect parts
+        # fall back to a plain string input.
+        input_value = get_input_value_from_context(context)
 
-        result = await self.agent.invoke(user_text or None)
+        message_result = await self.agent.invoke(input_value)
         # Respond to the original caller
-        await event_queue.enqueue_event(new_agent_text_message(result))
+        await event_queue.enqueue_event(message_result)
 
     @override
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
@@ -45,15 +45,14 @@ class HiThereAgentExecutor(AgentExecutor):
         context: RequestContext,
         event_queue: EventQueue,
     ) -> None:
-        # Extract incoming text from the request context (if any)
-        try:
-            user_text = context.get_user_input().strip()
-        except Exception:
-            user_text = ""
+        # Prefer passing the full Message object when available
+        # to allow the agent to inspect parts
+        # fall back to a plain string input.
+        input_value = get_input_value_from_context(context)
 
-        result = await self.agent.invoke(user_text or None)
+        message_result = await self.agent.invoke(input_value)
         # Respond to the original caller
-        await event_queue.enqueue_event(new_agent_text_message(result))
+        await event_queue.enqueue_event(message_result)
 
     @override
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:

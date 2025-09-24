@@ -1,18 +1,3 @@
-## How to Run
-1. start the server
-```
-nohup python3 -m server_a2a.main > server.log 2>&1 &
-echo $! > server.pid
-```
-2. test run a client
-```
-python client_a2a/simple_messaging.py
-```
-3. stop the server
-```
-kill $(cat server.pid) && rm server.pid server.log
-```
-
 ## Project Name
 
 **TODO:** Short summary/description here later --
@@ -63,4 +48,20 @@ docker-compose up --build
 4. **View the web page on:**
 ```
 Local: http://localhost:5173/
+```
+
+## Running Agent-to-Agent
+1. start the server
+```
+nohup python3 -m server_a2a.main > server.log 2>&1 &
+echo $! > server.pid
+tail -f server.log
+```
+2. test run a client
+```
+python client_a2a/simple_messaging.py
+```
+3. stop the server
+```
+pgrep -af "server_a2a.main" | awk '{print $1}' | xargs -r kill
 ```

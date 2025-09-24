@@ -1,12 +1,12 @@
 import asyncio
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import httpx
 
 from a2a.client import ClientFactory
 from a2a.client.client import ClientConfig
 from a2a.client.helpers import create_text_message_object
-from a2a.types import AgentCard, Message
+from a2a.types import AgentCard, Message, TextPart
 
 SERVER_PORTS: List[int] = [9999, 9998]
 
@@ -25,37 +25,41 @@ async def fetch_agent_card(
 
 
 async def send_and_collect(
-    client_factory: ClientFactory, card: AgentCard, content: str
-) -> Optional[str]:
+    client_factory: ClientFactory, card: AgentCard, content: str | Message
+) -> Tuple[Optional[str], Optional[Message]]:
     """Send `content` to the agent described by `card` and return the first text reply (if any)."""
     client = client_factory.create(card)
-    message: Message = create_text_message_object(content=content)
+    message: Message = (
+        content
+        if isinstance(content, Message)
+        else create_text_message_object(content=content)
+    )
 
-    first_text = None
+    text_to_user, message_to_agent = None, None
     try:
         async for event in client.send_message(message):
+            if not isinstance(event, Message):
+                continue
             # print raw event for debugging
-            print(f"[to {card.url}] EVENT: {event}")
-            # attempt to extract a text payload from the event
-            parts = getattr(event, "parts", None)
-            if parts:
-                p = parts[0]
-                root = getattr(p, "root", None)
-                if root is not None:
-                    text = getattr(root, "text", None)
-                elif isinstance(p, dict):
-                    inner = p.get("root") or p
-                    text = inner.get("text") if isinstance(inner, dict) else None
-                else:
-                    text = None
-
-                if text:
-                    if first_text is None:
-                        first_text = text
+            # print(f"[to {card.url}] EVENT: {event}")
+            parts = event.parts
+            if isinstance(parts, list) and parts:
+                # attempt to extract a text payload from 1st part for user
+                text_part = parts[0].root
+                if isinstance(text_part, TextPart) and text_to_user is None:
+                    text_to_user = text_part.text
+            if isinstance(parts, list) and len(parts) >= 2:
+                # assume 2nd part is for agent
+                if message_to_agent is None:
+                    message_to_agent = Message(
+                        message_id=event.message_id,
+                        parts=[parts[1]],
+                        role=event.role,
+                    )
     except Exception as exc:
         print(f"Error while sending message to {card.url}: {exc}")
 
-    return first_text
+    return text_to_user, message_to_agent
 
 
 async def simple_messaging_via_client():
@@ -75,20 +79,23 @@ async def simple_messaging_via_client():
         # client1 -> agent1
         print("\n--- client1 -> agent1 ---")
         client1_message = "hello!"
-        agent1_reply = await send_and_collect(factory, card1, client1_message)
-        print(f"agent1_reply (collected by client1): {agent1_reply}")
+        agent1_to_user, agent1_to_agent = await send_and_collect(
+            factory, card1, client1_message
+        )
+        print(f"agent1_reply (collected by client1): {agent1_to_user}")
 
         # client1 -> client2 (simulate transfer of agent1's reply as a client message)
         print("\n--- client1 forwards agent1 reply to client2 (simulated) ---")
-        if agent1_reply is None:
-            print("No reply from agent1 to forward; sending default payload to client2")
-            agent1_reply = "(no reply from agent1)"
-        client2_message = agent1_reply
+        client2_message = (
+            agent1_to_agent if agent1_to_agent is not None else "(no reply from agent1)"
+        )
 
         # client2 -> agent2
         print("\n--- client2 -> agent2 ---")
-        agent2_reply = await send_and_collect(factory, card2, client2_message)
-        print(f"agent2_reply (collected by client2): {agent2_reply}")
+        agent2_to_user, agent2_to_agent = await send_and_collect(
+            factory, card2, client2_message
+        )
+        print(f"agent2_reply (collected by client2): {agent2_to_user}")
 
 
 if __name__ == "__main__":
