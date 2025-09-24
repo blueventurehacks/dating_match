@@ -1,0 +1,35 @@
+services:
+  frontend:
+    build:
+      context: ./frontend  # Path to your frontend code
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"  # Expose port 5173 for the Vite dev server
+    volumes:
+      - ./frontend:/app  # Mount the code for live changes (optional, for dev only)
+      - frontend_node_modules:/app/node_modules  # Persist node_modules inside container
+    environment:
+      - CHOKIDAR_USEPOLLING=true  # This enables file watching when running in Docker
+    command: sh -c "npm install && npm run dev"
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend  # Path to your backend code
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"  # Expose Flask on port 5000
+    env_file:
+      - backend/.env
+    environment:
+      - FLASK_ENV=development
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  frontend_node_modules:
