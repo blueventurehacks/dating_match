@@ -1,16 +1,10 @@
 import { useState, useRef, useEffect } from "react";
+import { useChat } from "../hooks/ChatContext";
 
 const CHAT_API = (import.meta.env.VITE_API_URL || "") + "/chat/message";
 
-const ChatBox = ({ starting_text }) => {
-	const [messages, setMessages] = useState([
-		{
-			id: 1,
-			text: starting_text,
-			sender: "bot",
-			timestamp: new Date(),
-		},
-	]);
+const ChatBox = () => {
+	const { messages, setMessages, resetChat } = useChat();
 	const [inputMessage, setInputMessage] = useState("");
 	const [isTyping, setIsTyping] = useState(false);
 	const messagesEndRef = useRef(null);
@@ -92,12 +86,13 @@ const ChatBox = ({ starting_text }) => {
 							key={message.id}
 							className={`message-wrapper d-flex mb-3 ${
 								message.sender === "user"
-									? "justify-content-end"
-									: "justify-content-start"
+									? "justify-content-end me-2"
+									: "justify-content-start ms-2"
 							}`}
 						>
 							<div
-								className={`message-bubble ${
+								className={`message-bubble p-3 rounded-3 shadow-sm ${
+									// Added p-3, rounded-3, shadow-sm
 									message.sender === "user"
 										? "bg-primary text-white"
 										: "bg-light text-dark border"
@@ -121,7 +116,7 @@ const ChatBox = ({ starting_text }) => {
 
 					{/* Typing Indicator */}
 					{isTyping && (
-						<div className="message-wrapper d-flex justify-content-start mb-3">
+						<div className="message-wrapper d-flex justify-content-start ms-2 mb-3">
 							<div className="message-bubble bg-light text-dark border">
 								<div className="typing-indicator">
 									<span></span>
@@ -138,6 +133,15 @@ const ChatBox = ({ starting_text }) => {
 
 			{/* Chat Input Area */}
 			<div className="chat-input border-top bg-white p-3">
+				<div className="d-flex justify-content-end mb-2">
+					<button
+						className="btn btn-sm btn-outline-secondary"
+						onClick={resetChat}
+						title="Start a new conversation"
+					>
+						<i className="bi bi-arrow-clockwise"></i> New Chat
+					</button>
+				</div>
 				<form onSubmit={handleSendMessage} className="d-flex gap-2">
 					<div className="input-group">
 						<input

@@ -100,7 +100,7 @@ def save_user_relationship_goal(user_id: int, relationship_goal: str):
 # --- Configure the Gemini Model ---
 
 model = genai.GenerativeModel(
-    model_name='gemini-1.5-flash',
+    model_name='gemini-2.0-flash-001',
     tools=[
         save_user_hobbies,
         save_user_mbti,

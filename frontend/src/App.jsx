@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./hooks/AuthContext";
+import { ChatProvider } from "./hooks/ChatContext";
 import Overview from "./pages/Overview";
 import Login from "./pages/Login";
 import CreateAccount from "./pages/CreateAccount";
@@ -11,35 +12,40 @@ import NavBar from "./components/NavBar";
 function App() {
 	return (
 		<AuthProvider>
-			<Router>
-				<NavBar />
-				<Routes>
-					<Route path="/login" element={<Login />} />
-					<Route path="/create-account" element={<CreateAccount />} />
+			<ChatProvider>
+				<Router>
+					<NavBar />
+					<Routes>
+						<Route path="/login" element={<Login />} />
+						<Route
+							path="/create-account"
+							element={<CreateAccount />}
+						/>
 
-					{/* Public landing page: centered chat */}
-					<Route path="/" element={<LandingPage />} />
+						{/* Public landing page: centered chat */}
+						<Route path="/" element={<LandingPage />} />
 
-					{/* Private routes */}
-					<Route
-						path="/overview"
-						element={
-							<PrivateRoute>
-								<Overview />
-							</PrivateRoute>
-						}
-					/>
+						{/* Private routes */}
+						<Route
+							path="/overview"
+							element={
+								<PrivateRoute>
+									<Overview />
+								</PrivateRoute>
+							}
+						/>
 
-					<Route
-						path="/account"
-						element={
-							<PrivateRoute>
-								<Account />
-							</PrivateRoute>
-						}
-					/>
-				</Routes>
-			</Router>
+						<Route
+							path="/account"
+							element={
+								<PrivateRoute>
+									<Account />
+								</PrivateRoute>
+							}
+						/>
+					</Routes>
+				</Router>
+			</ChatProvider>
 		</AuthProvider>
 	);
 }
