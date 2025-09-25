@@ -3,7 +3,7 @@ import json
 import google.generativeai as genai
 from google.generativeai import types
 from flask import Blueprint, request, jsonify
-from models import db, User
+from ..models import db, User
 
 chat_bp = Blueprint('chat', __name__, url_prefix='/chat')
 

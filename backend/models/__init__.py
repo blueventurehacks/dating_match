@@ -1,1 +1,2 @@
-from .user import User, db
+from ..extensions import db
+from .user import User

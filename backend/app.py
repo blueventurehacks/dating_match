@@ -1,11 +1,11 @@
 from flask import Flask
-from config import Config
-from extensions import db, cors, migrate
-from models import User
-from routes.auth import auth_bp
-from routes.self_discovery_chat import chat_bp
-from routes.health import health_bp
-from cli import init_db_command
+from .config import Config
+from .extensions import db, cors, migrate
+from .models import User
+from .routes.auth import auth_bp
+from .routes.self_discovery_chat import chat_bp
+from .routes.health import health_bp
+from .cli import init_db_command
 
 def create_app():
     app = Flask(__name__)
