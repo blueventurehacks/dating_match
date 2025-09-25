@@ -31,16 +31,21 @@ const NavBar = () => {
 
 				<div className="collapse navbar-collapse" id="mainNavbar">
 					<ul className="navbar-nav me-auto mb-2 mb-lg-0">
-						<li className="nav-item">
-							<Link className="nav-link" to="/">
-								Chat
-							</Link>
-						</li>
 						{isAuthenticated && (
 							<>
 								<li className="nav-item">
 									<Link className="nav-link" to="/overview">
 										Overview
+									</Link>
+								</li>
+								<li className="nav-item">
+									<Link className="nav-link" to="/">
+										Self-Discovery
+									</Link>
+								</li>
+								<li className="nav-item">
+									<Link className="nav-link" to="/">
+										Dating Coach
 									</Link>
 								</li>
 								<li className="nav-item">

@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 
-const ChatBox = () => {
+const CHAT_API = (import.meta.env.VITE_API_URL || "") + "/chat/message";
+
+const ChatBox = ({ starting_text }) => {
 	const [messages, setMessages] = useState([
 		{
 			id: 1,
-			text: "Welcome! I'm your dating assistant. How can I help you today?",
+			text: starting_text,
 			sender: "bot",
 			timestamp: new Date(),
 		},
@@ -21,7 +23,7 @@ const ChatBox = () => {
 		scrollToBottom();
 	}, [messages]);
 
-	const handleSendMessage = (e) => {
+	const handleSendMessage = async (e) => {
 		e.preventDefault();
 		if (!inputMessage.trim()) return;
 
@@ -36,17 +38,41 @@ const ChatBox = () => {
 		setInputMessage("");
 		setIsTyping(true);
 
-		// Simulate bot response (replace with actual API call later)
-		setTimeout(() => {
+		try {
+			const userId = sessionStorage.getItem("userId");
+			if (!userId) {
+				throw new Error("User not logged in.");
+			}
+
+			const response = await fetch(CHAT_API, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					message: inputMessage,
+					userId: parseInt(userId),
+				}),
+			});
+
+			if (!response.ok) {
+				throw new Error("Failed to get a response from the bot.");
+			}
+
+			const data = await response.json();
+
 			const botResponse = {
 				id: messages.length + 2,
-				text: "I understand you're looking for dating advice. I'm here to help! What specific questions do you have?",
+				text: data.reply,
 				sender: "bot",
 				timestamp: new Date(),
 			};
 			setMessages((prev) => [...prev, botResponse]);
+		} catch (error) {
+			console.error("Chat error:", error);
+		} finally {
 			setIsTyping(false);
-		}, 1500);
+		}
 	};
 
 	const formatTime = (date) => {

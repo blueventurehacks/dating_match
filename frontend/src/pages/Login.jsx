@@ -46,23 +46,8 @@ const Login = () => {
 
 			const jsonResponse = await response.json();
 
-			if (jsonResponse) {
-				sessionStorage.setItem("userId", jsonResponse.id ?? "");
-				sessionStorage.setItem(
-					"userFirstName",
-					jsonResponse.firstName ?? ""
-				);
-				sessionStorage.setItem(
-					"userLastName",
-					jsonResponse.lastName ?? ""
-				);
-				sessionStorage.setItem(
-					"userEmailAddress",
-					jsonResponse.emailAddress ?? ""
-				);
-			}
-
-			login();
+			// The login function from AuthContext will handle storage
+			login(jsonResponse);
 			navigate("/overview");
 		} catch (error) {
 			setErrorMsg(error.message);

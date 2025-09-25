@@ -3,27 +3,24 @@ import { createContext, useContext, useState } from "react";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-	const [isAuthenticated, setIsAuthenticated] = useState(() => {
-		const storedLoginState = sessionStorage.getItem("storedLoginState");
-		return storedLoginState ? JSON.parse(storedLoginState) : false;
-	});
+	const [user, setUser] = useState(() =>
+		JSON.parse(sessionStorage.getItem("user"))
+	);
 
-	const login = () => {
-		setIsAuthenticated(true);
-		sessionStorage.setItem("storedLoginState", true);
+	const login = (userData) => {
+		sessionStorage.setItem("user", JSON.stringify(userData));
+		setUser(userData);
 	};
+
 	const logout = () => {
-		setIsAuthenticated(false);
-		sessionStorage.setItem("storedLoginState", false);
-		sessionStorage.removeItem("userId");
-		sessionStorage.removeItem("userFirstName");
-		sessionStorage.removeItem("userLastName");
-		sessionStorage.removeItem("userEmailAddress");
-		sessionStorage.removeItem("accessToken");
+		sessionStorage.removeItem("user");
+		setUser(null);
 	};
+
+	const isAuthenticated = !!user;
 
 	return (
-		<AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+		<AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
 			{children}
 		</AuthContext.Provider>
 	);
