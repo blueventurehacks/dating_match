@@ -1,7 +1,7 @@
 import os
 import google.generativeai as genai
 from google.generativeai import types
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from models import db, User
 
 self_discovery_bp = Blueprint('self_discovery', __name__, url_prefix='/self_discovery')
@@ -18,17 +18,18 @@ def save_user_hobbies(user_id: int, hobbies: str):
         user_id (int): The ID of the user to update.
         hobbies (str): A summary of the user's hobbies.
     """
-    try:
-        user = db.session.get(User, user_id)
-        if not user:
-            return f"Cannot find user with ID {user_id}."
+    with current_app.app_context():
+        try:
+            user = db.session.get(User, user_id)
+            if not user:
+                return f"Cannot find user with ID {user_id}."
 
-        user.hobbies = hobbies
-        db.session.commit()
-        return f"Successfully updated hobbies  for {user.first_name}."
-    except Exception as e:
-        db.session.rollback()
-        return f"An error occurred: {str(e)}"
+            user.hobbies = hobbies
+            db.session.commit()
+            return f"Successfully updated hobbies for {user.first_name}."
+        except Exception as e:
+            db.session.rollback()
+            return f"An error occurred: {str(e)}"
 
 def save_user_mbti(user_id: int, mbti_type: str):
     """
@@ -50,17 +51,18 @@ def save_user_mbti(user_id: int, mbti_type: str):
     if mbti_type not in valid_mbti_types:
         return f"'{mbti_type}' is not a valid MBTI type."
 
-    try:
-        user = db.session.get(User, user_id)
-        if not user:
-            return f"Cannot find user with ID {user_id}."
+    with current_app.app_context():
+        try:
+            user = db.session.get(User, user_id)
+            if not user:
+                return f"Cannot find user with ID {user_id}."
 
-        user.mbti = mbti_type
-        db.session.commit()
-        return f"Saved {mbti_type} as {user.first_name}'s MBTI type."
-    except Exception as e:
-        db.session.rollback()
-        return f"An error occurred: {str(e)}"
+            user.mbti = mbti_type
+            db.session.commit()
+            return f"Saved {mbti_type} as {user.first_name}'s MBTI type."
+        except Exception as e:
+            db.session.rollback()
+            return f"An error occurred: {str(e)}"
 
 def save_user_attachment_style(user_id: int, attachment_style: str):
     """Saves the user's attachment style."""
@@ -72,29 +74,31 @@ def save_user_attachment_style(user_id: int, attachment_style: str):
     if attachment_style not in valid_styles:
         return f"'{attachment_style}' is not a valid attachment style."
 
-    try:
-        user = db.session.get(User, user_id)
-        if not user:
-            return f"Cannot find user with ID {user_id}."
-        user.attachment_style = attachment_style
-        db.session.commit()
-        return f"Saved {attachment_style} as {user.first_name}'s attachment style."
-    except Exception as e:
-        db.session.rollback()
-        return f"An error occurred: {str(e)}" 
+    with current_app.app_context():
+        try:
+            user = db.session.get(User, user_id)
+            if not user:
+                return f"Cannot find user with ID {user_id}."
+            user.attachment_style = attachment_style
+            db.session.commit()
+            return f"Saved {attachment_style} as {user.first_name}'s attachment style."
+        except Exception as e:
+            db.session.rollback()
+            return f"An error occurred: {str(e)}"
 
 def save_user_relationship_goal(user_id: int, relationship_goal: str):
     """Saves the user's relationship goal."""
-    try:
-        user = db.session.get(User, user_id)
-        if not user:
-            return f"Cannot find user with ID {user_id}."
-        user.relationship_goal = relationship_goal
-        db.session.commit()
-        return f"Saved relationship goal for {user.first_name}."
-    except Exception as e:
-        db.session.rollback()
-        return f"An error occurred: {str(e)}"
+    with current_app.app_context():
+        try:
+            user = db.session.get(User, user_id)
+            if not user:
+                return f"Cannot find user with ID {user_id}."
+            user.relationship_goal = relationship_goal
+            db.session.commit()
+            return f"Saved relationship goal for {user.first_name}."
+        except Exception as e:
+            db.session.rollback()
+            return f"An error occurred: {str(e)}"
 
 # --- Configure the Gemini Model ---
 
@@ -120,11 +124,11 @@ model = genai.GenerativeModel(
                 3. Normalize fuzzy answers. For example:
                     - "I think I'm clingy" -> Anxious
                     - "I need space" -> Avoidant
-                    - "I'm independent but still want connection" -> Fearful-Avoidant
-                4. Keep the conversation casual, helpful, and informative -- like a supportive coach or therapist.
-                5. Consistently prompt the user with targeted questions designed to elicit specific details that help you gather the required information, 
-                   but limit the number of questions in each response to 2 or 3, depending on the flow of the conversation. The user should not feel overwhelmed.
-                6. If the user only answers part of the previous response, try to ask the missing pieces in a reworded question.
+                    - "I'm independent but still want connection" -> Fearful-Avoidant                
+                4. Your primary goal is to be a supportive coach. When a user shares information, your first priority is to provide a brief, insightful explanation about what it might mean for them. For example, if a user says they are introverted, explain how that might impact their personality or social energy in dating.
+                5. After providing an explanation, you can then gently ask a follow-up question to gather more details for the remaining categories. Limit yourself to one or two questions at a time to keep the conversation from feeling like an interrogation.
+                6. Keep the conversation casual, helpful, and informative.
+                7. If the user only answers part of a previous question, you can re-ask for the missing information later, but prioritize explaining what they've already told you.
         """
 )
 
@@ -134,17 +138,17 @@ def handle_chat():
     user_message = payload.get("message")
     user_id = payload.get("userId")
 
-    if not all([user_message, user_id]):
+    if not user_message or not user_id:
         return jsonify({"message": "Missing message or userId"}), 400
 
     # Start chat session with function calling enabled
     chat_session = model.start_chat(enable_automatic_function_calling=True)
 
-    # Send user message. The library will automatically handle the function calling loop.
-    # By providing context about the user, the model can infer the user_id for the function call.
-    response = chat_session.send_message(
-        f"The user with ID {user_id} says: {user_message}"
-    )
+    # Provide the user's ID to the model so it can save information.
+    prompt = f"The user with ID {user_id} says: {user_message}"
+
+    # Send the prompt to the model. The library will automatically handle the function calling loop.
+    response = chat_session.send_message(prompt)
 
     # The final response text will be the model's textual reply to the user.
     bot_response = response.text

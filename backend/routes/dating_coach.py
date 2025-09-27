@@ -84,7 +84,9 @@ async def handle_dating_coach_chat():
             "For additional context, another AI assistant (the 'self-discovery assistant') is also talking to this user to learn about their personality. "
             f"The self-discovery assistant's last message to the user was: '{sd_reply}'\n\n"
             "Your primary goal is to answer the user's direct message. Use the context from the self-discovery assistant's conversation to better understand the user, "
-            "but be aware that it might contain questions or conversational filler, not just facts. Provide your best dating advice based on all this information."
+            "but be aware that it might contain questions or conversational filler, not just facts."
+            "When the self-discovery assistant does provide some facts, try to incorporate them into your advice."
+            "Provide your best dating advice based on all this information."
         )
 
     else:

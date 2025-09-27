@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useChat } from "../hooks/ChatContext";
+import { useAuth } from "../hooks/AuthContext";
 
 const CHAT_API = (import.meta.env.VITE_API_URL || "") + "/self_discovery/message";
 
 const ChatBox = () => {
 	const { messages, setMessages, resetChat } = useChat();
+	const { user } = useAuth(); // Get the full user object from AuthContext
 	const [inputMessage, setInputMessage] = useState("");
 	const [isTyping, setIsTyping] = useState(false);
 	const messagesEndRef = useRef(null);
@@ -33,24 +35,26 @@ const ChatBox = () => {
 		setIsTyping(true);
 
 		try {
-			const userId = sessionStorage.getItem("userId");
-			if (!userId) {
-				throw new Error("User not logged in.");
-			}
+			const payload = {
+				message: inputMessage,
+				// The user must be logged in to use this feature.
+				userId: parseInt(user.id),
+			};
 
 			const response = await fetch(CHAT_API, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({
-					message: inputMessage,
-					userId: parseInt(userId),
-				}),
+				body: JSON.stringify(payload),
 			});
 
 			if (!response.ok) {
-				throw new Error("Failed to get a response from the bot.");
+				const errorData = await response.json().catch(() => ({})); // Try to parse error
+				throw new Error(
+					errorData.message ||
+						"Failed to get a response from the bot."
+				);
 			}
 
 			const data = await response.json();
@@ -64,6 +68,15 @@ const ChatBox = () => {
 			setMessages((prev) => [...prev, botResponse]);
 		} catch (error) {
 			console.error("Chat error:", error);
+			const errorResponse = {
+				id: messages.length + 2,
+				text:
+					error.message ||
+					"Sorry, I'm having trouble connecting. Please try again later.",
+				sender: "bot",
+				timestamp: new Date(),
+			};
+			setMessages((prev) => [...prev, errorResponse]);
 		} finally {
 			setIsTyping(false);
 		}

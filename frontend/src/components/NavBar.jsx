@@ -1,12 +1,18 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/AuthContext";
+import { useChat } from "../hooks/ChatContext";
+import { useDatingCoachChat } from "../hooks/DatingCoachChatContext";
 
 const NavBar = () => {
 	const { isAuthenticated, logout } = useAuth();
+	const { resetChat: resetSelfDiscoveryChat } = useChat();
+	const { resetChat: resetDatingCoachChat } = useDatingCoachChat();
 	const navigate = useNavigate();
 
 	const handleLogout = () => {
 		logout();
+		resetSelfDiscoveryChat();
+		resetDatingCoachChat();
 		navigate("/login");
 	};
 

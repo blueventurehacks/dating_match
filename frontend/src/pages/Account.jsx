@@ -1,12 +1,45 @@
+import { useEffect, useState } from "react";
 import { useAuth } from "../hooks/AuthContext";
 
-const Account = () => {
-	const { user } = useAuth();
+const USER_API = (import.meta.env.VITE_API_URL || "") + "/auth/user";
 
-	if (!user) {
+const Account = () => {
+	const { user: authUser, token } = useAuth();
+	const [userDetails, setUserDetails] = useState(authUser);
+	const [isLoading, setIsLoading] = useState(true);
+
+	useEffect(() => {
+		console.log(authUser)
+
+		const fetchUserDetails = async () => {
+			if (!token) {
+				setIsLoading(false);
+				return;
+			}
+			try {
+				const response = await fetch(USER_API, {
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				});
+				if (response.ok) {
+					const data = await response.json();
+					setUserDetails(data);
+				}
+			} catch (error) {
+				console.error("Failed to fetch user details:", error);
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		fetchUserDetails();
+	}, [token]);
+
+	if (isLoading) {
 		return (
 			<div className="container text-center">
-				<p>Please log in to view your account details.</p>
+				<p>Loading account details...</p>
 			</div>
 		);
 	}
@@ -14,6 +47,14 @@ const Account = () => {
 	return (
 		<div className="container py-5">
 			<div className="text-center mb-5">
+				{!userDetails && (
+					<div className="alert alert-warning">
+						Please log in to view your account details.
+					</div>
+				)}
+
+				{userDetails && (
+					<>
 				<img
 					src="..\vite.svg"
 					alt="Profile Picture"
@@ -25,9 +66,11 @@ const Account = () => {
 					}}
 				/>
 				<h2 className="mb-1">
-					{user.firstName} {user.lastName}
+							{userDetails.firstName} {userDetails.lastName}
 				</h2>
-				<p className="text-muted">{user.emailAddress}</p>
+						<p className="text-muted">{userDetails.emailAddress}</p>
+					</>
+				)}
 			</div>
 
 			<div className="card shadow-sm mb-4">
@@ -35,6 +78,7 @@ const Account = () => {
 					Profile Details
 				</div>
 				<div className="card-body p-0">
+					{userDetails && (
 					<ul className="list-group list-group-flush">
 						{[
 							{ label: "MBTI Personality", key: "mbti" },
@@ -47,7 +91,7 @@ const Account = () => {
 							>
 								<span className="fw-medium">{label}</span>
 								<span className="badge bg-light text-dark border rounded-pill px-3 py-2">
-									{user[key] || "Not set"}
+										{userDetails[key] || "Not set"}
 								</span>
 							</li>
 						))}
@@ -80,11 +124,12 @@ const Account = () => {
 								Hobbies & Interests
 							</span>
 							<p className="text-muted mb-0 mt-1">
-								{user.hobbies ||
+									{userDetails.hobbies ||
 									"No hobbies listed yet. Tell me about them in the chat!"}
 							</p>
 						</li>
 					</ul>
+					)}
 				</div>
 			</div>
 		</div>
