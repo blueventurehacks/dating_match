@@ -21,9 +21,9 @@ def get_agent_url(port: int) -> str:
 def get_backend_url() -> str:
     """
     Determines the correct host for the backend API.
-    - 'http://localhost:5000' if running in Docker.
-    - 'http://localhost:5000' for local development.
+    - 'http://localhost:5001' if running in Docker.
+    - 'http://localhost:5001' for local development.
     """
     if os.getenv("RUNNING_IN_DOCKER"):
-        return "http://localhost:5000"
-    return "http://localhost:5000"
+        return "http://localhost:5001"
+    return "http://localhost:5001"

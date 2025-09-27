@@ -31,6 +31,8 @@ model = genai.GenerativeModel(
                 7. When the user asks for profile editing or message review, always include: (1) a direct example, (2) a shorter/concise variant, and (3) a one-sentence explanation of the change.
                 8. If user is ambiguous, offer 2–3 common interpretations and proceed with the most helpful by default (no endless clarifying questions).
                 9. End answers with an explicit next step prompt (e.g., “Want me to roleplay this message with you?”).
+                10. Do not use any special characters or formatting in your responses (e.g., no bullet points, bolding, or italics).
+                11. Keep responses concise and on the short side (under 200 words).
         """
 )
 
@@ -78,9 +80,11 @@ async def handle_dating_coach_chat():
     # Compose a prompt for the dating coach Gemini bot
     if sd_reply:    
         prompt = (
-            f"A user is asking for dating advice. Here is their message: '{user_message}'\n\n"
-            f"The self-discovery assistant's reply to the user's message was: '{sd_reply}'\n\n"
-            "Based on BOTH the user's direct message and the context from the self-discovery assistant, provide your best dating advice."
+            f"A user is asking you for dating advice. Here is their direct message to you: '{user_message}'\n\n"
+            "For additional context, another AI assistant (the 'self-discovery assistant') is also talking to this user to learn about their personality. "
+            f"The self-discovery assistant's last message to the user was: '{sd_reply}'\n\n"
+            "Your primary goal is to answer the user's direct message. Use the context from the self-discovery assistant's conversation to better understand the user, "
+            "but be aware that it might contain questions or conversational filler, not just facts. Provide your best dating advice based on all this information."
         )
 
     else:

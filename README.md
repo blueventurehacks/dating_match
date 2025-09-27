@@ -83,7 +83,7 @@ GEMINI_API_KEY=your_api_key_here
 In the `frontend/` folder, create a `.env` file and add:
 
 ```env
-VITE_API_URL=http://localhost:5000
+VITE_API_URL=http://localhost:5001
 ```
 
 - Change the port number at the end if you manually chose a different one.

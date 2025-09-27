@@ -26,10 +26,10 @@ const CreateAccount = () => {
 		event.preventDefault();
 		setErrorMsg("");
 
-		// if (formValues.password.length < 8) {
-		// 	setErrorMsg("Password must be at least 8 characters.");
-		// 	return;
-		// }
+		if (formValues.password.length > 72) {
+			setErrorMsg("Password cannot be longer than 72 characters.");
+			return;
+		}
 		if (formValues.password !== formValues.password2) {
 			setErrorMsg("Passwords do not match.");
 			return;

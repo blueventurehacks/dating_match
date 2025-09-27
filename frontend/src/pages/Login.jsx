@@ -24,6 +24,11 @@ const Login = () => {
 	const handleLogin = async (event) => {
 		event.preventDefault();
 		setErrorMsg("");
+
+		if (formValues.password.length > 72) {
+			setErrorMsg("Password cannot be longer than 72 characters.");
+			return;
+		}
 		setIsLoading(true);
 
 		try {

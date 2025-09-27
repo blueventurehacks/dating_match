@@ -1,0 +1,3 @@
+uvicorn
+typing_extensions
+google-adk['a2a']

@@ -21,7 +21,7 @@ def register():
         first_name=first_name,
         last_name=last_name,
         email_address=email_address,
-        password_hash=User.hash_password(password),
+        password=password,
     )
     db.session.add(user)
     db.session.commit()
@@ -38,7 +38,7 @@ def login():
         return jsonify({"message": "Missing required fields"}), 400
 
     user = User.query.filter_by(email_address=email_address).first()
-    if not user or not user.verify_password(password):
+    if not user or user.password != password:
         return jsonify({"message": "Invalid email or password"}), 401
 
     return jsonify(user.to_dict()), 200

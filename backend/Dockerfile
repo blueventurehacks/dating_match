@@ -17,7 +17,7 @@ COPY client_a2a /app/client_a2a/
 COPY backend/ .
 
 # Expose port
-EXPOSE 5000
+EXPOSE 5001
 
 # Run Flask app
 ENV FLASK_APP=app.py
