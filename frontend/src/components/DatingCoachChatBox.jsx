@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useDatingCoachChat } from "../hooks/DatingCoachChatContext";
 import { useAuth } from "../hooks/AuthContext";
 
+import ReactMarkdown from "react-markdown";
 const CHAT_API = (import.meta.env.VITE_API_URL || "") + "/dating_coach/message";
 
 const DatingCoachChatBox = () => {
@@ -104,7 +105,7 @@ const DatingCoachChatBox = () => {
 								}`}
 							>
 								<div className="message-text">
-									{message.text}
+									<ReactMarkdown>{message.text}</ReactMarkdown>
 								</div>
 								<div
 									className={`message-time small mt-1 text-end ${

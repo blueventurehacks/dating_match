@@ -7,6 +7,7 @@ from agents.agent_hello import HelloWorldAgent
 from agents.agent_hi import HiThereAgent
 from agents.self_discovery import SelfDiscoveryAgent
 from agents.dating_coach import DatingCoachAgent
+from agents.utils import extract_text
 from .utils import get_input_value_from_context
 from typing import AsyncGenerator
 
@@ -77,13 +78,13 @@ class SelfDiscoveryAgentExecutor(AgentExecutor):
         # Get input from context
         input_value = get_input_value_from_context(context)
 
-        print(f"[SelfDiscoveryAgentExecutor] Received: {input_value}")
+        print(f"[SelfDiscoveryAgentExecutor] Received: {extract_text(input_value)}")
 
         # Process through the agent
         message_result = await self.agent.invoke(input_value)
         
         # Send response back
-        print(f"[SelfDiscoveryAgentExecutor] Sending back: {message_result}")
+        print(f"[SelfDiscoveryAgentExecutor] Sending back: {extract_text(message_result)}")
         await event_queue.enqueue_event(message_result)
 
     @override

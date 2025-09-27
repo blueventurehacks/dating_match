@@ -7,6 +7,7 @@ from flask import Blueprint, request, jsonify
 from client_a2a.simple_messaging import send_and_collect, fetch_agent_card
 from a2a.client import ClientFactory
 from a2a.client.client import ClientConfig
+from models import db, User
 
 dating_coach_bp = Blueprint('dating_coach', __name__, url_prefix='/dating_coach')
 
@@ -31,7 +32,7 @@ model = genai.GenerativeModel(
                 7. When the user asks for profile editing or message review, always include: (1) a direct example, (2) a shorter/concise variant, and (3) a one-sentence explanation of the change.
                 8. If user is ambiguous, offer 2–3 common interpretations and proceed with the most helpful by default (no endless clarifying questions).
                 9. End answers with an explicit next step prompt (e.g., “Want me to roleplay this message with you?”).
-                10. Do not use any special characters or formatting in your responses (e.g., no bullet points, bolding, or italics).
+                10. Use markdown formatting like newlines and bullet points to break down long paragraphs and improve readability.
                 11. Keep responses concise and on the short side (under 200 words).
         """
 )
@@ -55,6 +56,25 @@ async def handle_dating_coach_chat():
     if not user_message:
         return jsonify({"message": "Missing message"}), 400
     
+
+#    user_profile_context = ""
+#    if user_id:
+#        user = db.session.get(User, user_id)
+#        if user:
+#            summary_parts = []
+#            if user.mbti:
+#                summary_parts.append(f"their MBTI is {user.mbti}")
+#            if user.attachment_style:
+#                summary_parts.append(f"their attachment style is {user.attachment_style}")
+#            if user.relationship_goal:
+#                summary_parts.append(f"their relationship goal is '{user.relationship_goal}'")
+#            if user.hobbies:
+#                summary_parts.append(f"their hobbies are '{user.hobbies}'")
+#
+#            if summary_parts:
+#                user_profile_context = f"Here is some context on the user: {', '.join(summary_parts)}. "
+
+
     sd_reply = None
     # If a user is logged in, consult the self-discovery agent for context.
     if user_id:
@@ -73,6 +93,8 @@ async def handle_dating_coach_chat():
                 sd_reply, _ = await send_and_collect(
                     factory,
                     self_discovery_card,
+                    # Prepend the user's profile context to the message
+                    # f"{user_profile_context}User {user_id} says: {user_message}"
                     f"User {user_id} says: {user_message}"
                 )
                 print(f"[DatingCoach] Received from SelfDiscoveryAgent: {sd_reply}")
@@ -81,9 +103,8 @@ async def handle_dating_coach_chat():
     if sd_reply:    
         prompt = (
             f"A user is asking you for dating advice. Here is their direct message to you: '{user_message}'\n\n"
-            "For additional context, another AI assistant (the 'self-discovery assistant') is also talking to this user to learn about their personality. "
             f"The self-discovery assistant's last message to the user was: '{sd_reply}'\n\n"
-            "Your primary goal is to answer the user's direct message. Use the context from the self-discovery assistant's conversation to better understand the user, "
+            "Your primary goal is to answer the user's direct message. Use the context from the self-discovery assistant's response to inform your advice, "
             "but be aware that it might contain questions or conversational filler, not just facts."
             "When the self-discovery assistant does provide some facts, try to incorporate them into your advice."
             "Provide your best dating advice based on all this information."

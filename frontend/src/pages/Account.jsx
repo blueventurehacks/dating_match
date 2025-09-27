@@ -4,24 +4,21 @@ import { useAuth } from "../hooks/AuthContext";
 const USER_API = (import.meta.env.VITE_API_URL || "") + "/auth/user";
 
 const Account = () => {
-	const { user: authUser, token } = useAuth();
-	const [userDetails, setUserDetails] = useState(authUser);
+	// Get the authenticated user from context to access the token
+	const { user: authUser } = useAuth();
+	const [userDetails, setUserDetails] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
-		console.log(authUser)
+		// Ensure we are in a loading state whenever this effect runs.
+		setIsLoading(true);
 
 		const fetchUserDetails = async () => {
-			if (!token) {
-				setIsLoading(false);
-				return;
-			}
+			// Don't do anything if the authUser hasn't been loaded from context yet.
+
 			try {
-				const response = await fetch(USER_API, {
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				});
+				const url = `${USER_API}?userId=${authUser.id}`;
+				const response = await fetch(url);
 				if (response.ok) {
 					const data = await response.json();
 					setUserDetails(data);
@@ -33,8 +30,16 @@ const Account = () => {
 			}
 		};
 
-		fetchUserDetails();
-	}, [token]);
+		// Only attempt to fetch if we have a user from the context.
+		// Otherwise, we are not logged in, so we can stop loading.
+		if (authUser?.id) {
+			fetchUserDetails();
+		} else {
+			// If there's no user or token, we're done loading and can show the login message.
+			setIsLoading(false);
+		}
+
+	}, [authUser]); // Re-run the effect if the authUser object from context changes.
 
 	if (isLoading) {
 		return (

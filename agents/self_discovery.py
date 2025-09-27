@@ -131,7 +131,7 @@ class SelfDiscoveryAgent:
             out_text = text
         else:
             # Extract user_id and message from the input
-            match = re.match(r"User (\d+) says: (.*)", text, re.DOTALL)
+            match = re.search(r"User (\d+) says: (.*)", text, re.DOTALL)
             if not match:
                 out_text = "Could not parse user ID from the message."
             else:

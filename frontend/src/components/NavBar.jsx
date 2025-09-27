@@ -20,7 +20,7 @@ const NavBar = () => {
 		<nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm sticky-top">
 			<div className="container">
 				<Link className="navbar-brand fw-semibold" to="/">
-					<span className="text-primary">Wingbot</span>
+					<span className="text-danger">BanBan</span>
 				</Link>
 
 				<button

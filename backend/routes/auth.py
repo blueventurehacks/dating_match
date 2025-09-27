@@ -41,4 +41,20 @@ def login():
     if not user or user.password != password:
         return jsonify({"message": "Invalid email or password"}), 401
 
+    # Without JWT, just return the user's data.
+    return jsonify(user.to_dict()), 200
+
+@auth_bp.route('/user', methods=['GET'])
+def get_user_profile():
+    # Get the user ID from the query string (e.g., /user?userId=1)
+    user_id = request.args.get('userId', type=int)
+
+    if not user_id:
+        return jsonify({"message": "userId parameter is required"}), 400
+
+    user = db.session.get(User, user_id)
+
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
     return jsonify(user.to_dict()), 200
