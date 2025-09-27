@@ -1,6 +1,6 @@
 import ChatBox from "../components/ChatBox";
 
-const LandingPage = () => {
+const SelfDiscovery = () => {
 	return (
 		<div className="min-vh-100 d-flex align-items-center">
 			<div className="container">
@@ -8,9 +8,14 @@ const LandingPage = () => {
 					<div className="col-12 col-md-10 col-lg-8 col-xl-7">
 						<div
 							className="card shadow-sm border-0 rounded-4"
-							style={{ minHeight: "70vh" }}
+							style={{ height: "80vh" }}
 						>
-							<div className="card-body p-0">
+							<div className="card-header bg-light text-center py-3 border-bottom-0">
+								<h5 className="mb-0 fw-semibold">
+									Self-Discovery
+								</h5>
+							</div>
+							<div className="card-body p-0 h-100">
 								<ChatBox />
 							</div>
 						</div>
@@ -21,4 +26,4 @@ const LandingPage = () => {
 	);
 };
 
-export default LandingPage;
+export default SelfDiscovery;

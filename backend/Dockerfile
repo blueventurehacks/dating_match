@@ -8,11 +8,13 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # Install dependencies
-COPY requirements.txt .
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY client_a2a /app/client_a2a/
+
 # Copy app files
-COPY . .
+COPY backend/ .
 
 # Expose port
 EXPOSE 5000

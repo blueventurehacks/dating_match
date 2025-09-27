@@ -1,9 +1,15 @@
+import uuid
+import httpx
+import re
 from a2a.types import (
     AgentSkill,
     AgentCard,
     AgentCapabilities,
 )
-
+from .config import get_agent_url, get_backend_url
+from typing import Union
+from a2a.types import Message, Role, Part, TextPart
+from .utils import extract_text
 
 # 1) MBTI personality type collection and validation
 mbti_skill = AgentSkill(
@@ -85,14 +91,13 @@ guided_conversation_skill = AgentSkill(
     ],
 )
 
-
 self_discovery_agent_card = AgentCard(
     name="Self Discovery Agent",
     description=(
         "A friendly self-discovery assistant that helps users reflect and records MBTI, attachment style, "
         "relationship goals, and hobbies while keeping a supportive, concise dialogue."
     ),
-    url="http://localhost:9997/",
+    url="http://placeholder-host:9997/", # URL will be replaced by the client
     version="1.0.0",
     default_input_modes=["text"],
     default_output_modes=["text"],
@@ -105,3 +110,51 @@ self_discovery_agent_card = AgentCard(
         guided_conversation_skill,
     ],
 )
+
+class SelfDiscoveryAgent:
+    """Simple self-discovery agent implementation."""
+
+    def __init__(self):
+        self.backend_url = get_backend_url()
+        # Configure retries to handle cases where the backend service might be starting up.
+        transport = httpx.AsyncHTTPTransport(
+            retries=1,  # Retry up to 3 times
+        )
+        self.httpx_client = httpx.AsyncClient(
+            transport=transport, timeout=30.0
+        )
+
+    async def invoke(self, input_value: Union[str, Message, None] = None) -> Message:
+        text = extract_text(input_value)
+        if not text:
+            text = "Hello! I'm your self-discovery assistant. Would you like to talk about your personality, attachment style, or relationship goals?"
+            out_text = text
+        else:
+            # Extract user_id and message from the input
+            match = re.match(r"User (\d+) says: (.*)", text, re.DOTALL)
+            if not match:
+                out_text = "Could not parse user ID from the message."
+            else:
+                user_id, user_message = match.groups()
+                
+                # Call the backend's self-discovery endpoint
+                try:
+                    api_url = f"{self.backend_url}/self_discovery/message"
+                    response = await self.httpx_client.post(
+                        api_url,
+                        json={"userId": int(user_id), "message": user_message}
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                    out_text = data.get("reply", "No reply from self-discovery service.")
+                except Exception as e:
+                    out_text = f"Error communicating with self-discovery service: {e}"
+
+        # The response from the Gemini model is the summary we send back
+        user_part = Part(root=TextPart(text=out_text, metadata={"receiver": "user"}))
+        agent_part = Part(root=TextPart(text=out_text, metadata={"receiver": "agent"}))
+        return Message(
+            message_id=uuid.uuid4().hex,
+            parts=[user_part, agent_part],
+            role=Role.agent,
+        )

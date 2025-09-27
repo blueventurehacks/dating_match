@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { useChat } from "../hooks/ChatContext";
+import { useDatingCoachChat } from "../hooks/DatingCoachChatContext";
+import { useAuth } from "../hooks/AuthContext";
 
-const CHAT_API = (import.meta.env.VITE_API_URL || "") + "/self_discovery/message";
+const CHAT_API = (import.meta.env.VITE_API_URL || "") + "/dating_coach/message";
 
-const ChatBox = () => {
-	const { messages, setMessages, resetChat } = useChat();
+const DatingCoachChatBox = () => {
+	const { messages, setMessages, resetChat } = useDatingCoachChat();
+	const { user } = useAuth(); // Get the full user object
 	const [inputMessage, setInputMessage] = useState("");
 	const [isTyping, setIsTyping] = useState(false);
 	const messagesEndRef = useRef(null);
@@ -33,20 +35,18 @@ const ChatBox = () => {
 		setIsTyping(true);
 
 		try {
-			const userId = sessionStorage.getItem("userId");
-			if (!userId) {
-				throw new Error("User not logged in.");
-			}
+			const payload = {
+				message: inputMessage,
+				// Only include userId if the user is logged in and has an ID
+				...(user && user.id && { userId: parseInt(user.id) }),
+			};
 
 			const response = await fetch(CHAT_API, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({
-					message: inputMessage,
-					userId: parseInt(userId),
-				}),
+				body: JSON.stringify(payload),
 			});
 
 			if (!response.ok) {
@@ -64,13 +64,20 @@ const ChatBox = () => {
 			setMessages((prev) => [...prev, botResponse]);
 		} catch (error) {
 			console.error("Chat error:", error);
+			const errorResponse = {
+				id: messages.length + 2,
+				text: "Sorry, I'm having trouble connecting. Please try again later.",
+				sender: "bot",
+				timestamp: new Date(),
+			};
+			setMessages((prev) => [...prev, errorResponse]);
 		} finally {
 			setIsTyping(false);
 		}
 	};
 
 	const formatTime = (date) => {
-		return date.toLocaleTimeString([], {
+		return new Date(date).toLocaleTimeString([], {
 			hour: "2-digit",
 			minute: "2-digit",
 		});
@@ -78,7 +85,6 @@ const ChatBox = () => {
 
 	return (
 		<div className="chat-container d-flex flex-column h-100">
-			{/* Chat Messages Area */}
 			<div className="chat-messages flex-grow-1 p-3 overflow-auto">
 				<div className="messages-list">
 					{messages.map((message) => (
@@ -92,7 +98,6 @@ const ChatBox = () => {
 						>
 							<div
 								className={`message-bubble p-3 rounded-3 shadow-sm ${
-									// Added p-3, rounded-3, shadow-sm
 									message.sender === "user"
 										? "bg-primary text-white"
 										: "bg-light text-dark border"
@@ -102,7 +107,7 @@ const ChatBox = () => {
 									{message.text}
 								</div>
 								<div
-									className={`message-time small ${
+									className={`message-time small mt-1 text-end ${
 										message.sender === "user"
 											? "text-white-50"
 											: "text-muted"
@@ -113,11 +118,9 @@ const ChatBox = () => {
 							</div>
 						</div>
 					))}
-
-					{/* Typing Indicator */}
 					{isTyping && (
 						<div className="message-wrapper d-flex justify-content-start ms-2 mb-3">
-							<div className="message-bubble bg-light text-dark border">
+							<div className="message-bubble p-3 bg-light text-dark border">
 								<div className="typing-indicator">
 									<span></span>
 									<span></span>
@@ -126,12 +129,9 @@ const ChatBox = () => {
 							</div>
 						</div>
 					)}
-
 					<div ref={messagesEndRef} />
 				</div>
 			</div>
-
-			{/* Chat Input Area */}
 			<div className="chat-input border-top bg-white p-3">
 				<div className="d-flex justify-content-end mb-2">
 					<button
@@ -143,27 +143,25 @@ const ChatBox = () => {
 					</button>
 				</div>
 				<form onSubmit={handleSendMessage} className="d-flex gap-2">
-					<div className="input-group">
-						<input
-							type="text"
-							className="form-control"
-							placeholder="Type your message here..."
-							value={inputMessage}
-							onChange={(e) => setInputMessage(e.target.value)}
-							disabled={isTyping}
-						/>
-						<button
-							type="submit"
-							className="btn btn-primary"
-							disabled={!inputMessage.trim() || isTyping}
-						>
-							<i className="bi bi-send"></i>
-						</button>
-					</div>
+					<input
+						type="text"
+						className="form-control"
+						placeholder="Type your message here..."
+						value={inputMessage}
+						onChange={(e) => setInputMessage(e.target.value)}
+						disabled={isTyping}
+					/>
+					<button
+						type="submit"
+						className="btn btn-primary"
+						disabled={!inputMessage.trim() || isTyping}
+					>
+						<i className="bi bi-send"></i>
+					</button>
 				</form>
 			</div>
 		</div>
 	);
 };
 
-export default ChatBox;
+export default DatingCoachChatBox;

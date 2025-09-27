@@ -3,7 +3,8 @@ from config import Config
 from extensions import db, cors, migrate
 from models import User
 from routes.auth import auth_bp
-from routes.self_discovery_chat import chat_bp
+from routes.self_discovery_chat import self_discovery_bp
+from routes.dating_coach import dating_coach_bp
 from routes.health import health_bp
 from cli import init_db_command
 
@@ -22,7 +23,8 @@ def create_app():
 
     # Register blueprints
     app.register_blueprint(auth_bp)
-    app.register_blueprint(chat_bp)
+    app.register_blueprint(self_discovery_bp)
+    app.register_blueprint(dating_coach_bp)
     app.register_blueprint(health_bp)
 
     # Register CLI commands

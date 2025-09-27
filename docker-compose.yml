@@ -16,14 +16,15 @@ services:
 
   backend:
     build:
-      context: ./backend  # Path to your backend code
-      dockerfile: Dockerfile
+      context: .  # Path to your backend code
+      dockerfile: backend/Dockerfile
     ports:
       - "5000:5000"  # Expose Flask on port 5000
     env_file:
       - backend/.env
     environment:
       - FLASK_ENV=development
+      - A2A_ON_HOST=1
     networks:
       - app-network
 

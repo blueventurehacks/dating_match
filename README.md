@@ -154,3 +154,20 @@ python client_a2a/simple_messaging.py
 ```
 pgrep -af "server_a2a.main" | awk '{print $1}' | xargs -r kill
 ```
+
+
+
+**--Side--**
+
+ran
+
+ python -m server_a2a.main 
+
+in \dating_match to start server
+
+
+--
+updating db once u make changes
+
+docker compose exec backend flask db migrate -m "A short description of your changes"
+docker compose exec backend flask db upgrade

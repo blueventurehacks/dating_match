@@ -1,11 +1,10 @@
 import os
-import json
 import google.generativeai as genai
 from google.generativeai import types
 from flask import Blueprint, request, jsonify
 from models import db, User
 
-chat_bp = Blueprint('chat', __name__, url_prefix='/chat')
+self_discovery_bp = Blueprint('self_discovery', __name__, url_prefix='/self_discovery')
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY", ""))
 
@@ -129,7 +128,7 @@ model = genai.GenerativeModel(
         """
 )
 
-@chat_bp.route('/message', methods=['POST'])
+@self_discovery_bp.route('/message', methods=['POST'])
 def handle_chat():
     payload = request.get_json()
     user_message = payload.get("message")
